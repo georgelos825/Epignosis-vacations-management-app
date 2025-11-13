@@ -214,15 +214,13 @@ Services:
 
 ## 3. Initialize DB, do this before login, in the given order(manual)
 
+# Copy SQL files into the db container
 docker cp vacationsEpignosis/docker/sql/schema.sql vacations_db:/tmp/schema.sql
 docker cp vacationsEpignosis/docker/sql/seed.sql vacations_db:/tmp/seed.sql
 
+# Apply schema and seed inside the container
 docker exec -it vacations_db psql -U postgres -d vacations -f /tmp/schema.sql
 docker exec -it vacations_db psql -U postgres -d vacations -f /tmp/seed.sql
-
-
-Verify:
-docker compose exec db psql -U postgres -d vacations -c "SELECT email, role FROM users;"
 
 ## 4. App URLs
 - Frontend: http://localhost:5173  
