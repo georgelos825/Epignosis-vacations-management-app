@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:18
+    container_name: vacations_db
+    environment:
+      POSTGRES_DB: vacations
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql   
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vacations"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: ./vacationsEpignosis
+      dockerfile: Dockerfile
+    container_name: vacations_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: vacations
+      DB_USER: postgres
+      DB_PASS: postgres
+      JWT_SECRET: supersecret
+      JWT_ISS: vacations-api
+      JWT_AUD: vacations-client
+      JWT_TTL_MINUTES: "120"
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      context: ./vacationsEpignosisFront
+      dockerfile: Dockerfile
+    container_name: vacations_web
+    depends_on:
+      - api
+    environment:
+      VITE_API_URL: "http://localhost:8000"
+    ports:
+      - "5173:80"
+
+volumes:
+  pgdata:
